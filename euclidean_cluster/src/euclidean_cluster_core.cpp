@@ -5,10 +5,13 @@ EuClusterCore::EuClusterCore(ros::NodeHandle &nh, ros::NodeHandle &private_nh)
     seg_distance_ = {15, 25, 35}; //按照距离分割区间划分
     cluster_distance_ = {0.4, 0.8, 1.4, 1.8}; //各区间的聚类半径
     private_nh.param<std::string>("obj_pub",obj_pub_,"/detection/lidar_objects");
-    std::string raw_points_topic = private_nh.param<std::string>("in_points","/pandar_points");
-	
+    //订阅的点云
+    std::string raw_points_topic = private_nh.param<std::string>("in_points","/pandar_points");	
     sub_point_cloud_     = nh.subscribe(raw_points_topic, 1, &EuClusterCore::point_cb, this);//point_cb
+    
+    //发布滤波后的点云
     pub_filtered_points_ = nh.advertise<sensor_msgs::PointCloud2>("/filtered_points", 1);
+    
     pub_bounding_boxs_   = nh.advertise<jsk_recognition_msgs::BoundingBoxArray>(obj_pub_, 1);
     pub_polygon_         = nh.advertise<euclidean_cluster::ObjectPolygonArray>("/objtect_polygon",1);
     pub_object_marker_   = nh.advertise<visualization_msgs::MarkerArray>("/object_marker",1);
@@ -21,9 +24,9 @@ EuClusterCore::EuClusterCore(ros::NodeHandle &nh, ros::NodeHandle &private_nh)
     private_nh.param<double>("y_min",y_min_,1.0);
     private_nh.param<double>("z_max",z_max_,1.0);
     private_nh.param<double>("z_min",z_min_,1.0);
-    private_nh.param<bool>("pose_estimation",pose_estimation_, true);
-    private_nh.param<bool>("use_downsample",use_downsample_, false);
-    private_nh.param<bool>("use_threshold_filter",use_threshold_filter_, false);
+    private_nh.param<bool>("pose_estimation",pose_estimation_, true);//是否姿态估计
+    private_nh.param<bool>("use_downsample",use_downsample_, false);//是否降采样
+    private_nh.param<bool>("use_threshold_filter",use_threshold_filter_, false);//使用阈值滤波
     private_nh.param<int> ("min_cluster_size",min_cluster_size_,20);
     private_nh.param<int> ("max_cluster_size",max_cluster_size_,500);
 
@@ -36,7 +39,9 @@ EuClusterCore::EuClusterCore(ros::NodeHandle &nh, ros::NodeHandle &private_nh)
     regions_[0] = 4; regions_[1] = 3; regions_[2] = 3; regions_[3] = 3; regions_[4] = 3;
     regions_[5] = 3; regions_[6] = 3; regions_[7] = 3; regions_[8] = 3; regions_[9] = 3;
     regions_[10]= 3; regions_[11]= 3; regions_[12]= 3; regions_[13]= 3;
-
+    
+    //画出可视化轨迹  LINE_STRIP：线条
+    //lifetime：在自动删除之前应持续多长时间
     marker_.type = visualization_msgs::Marker::LINE_STRIP;
     marker_.scale.x = 0.1;
     marker_.color.a = 1.0;
@@ -51,8 +56,11 @@ EuClusterCore::~EuClusterCore() {}
 //阈值滤波
 void EuClusterCore::clip_filter(const pcl::PointCloud<pcl::PointXYZ>::Ptr in,const pcl::PointCloud<pcl::PointXYZ>::Ptr out)
 {
+    //PCL中利用ExtractIndices按点云索引提取点云子集,创建了一个滤波器
     pcl::ExtractIndices<pcl::PointXYZ> cliper;
+    //降需要滤波的点云输入给滤波器
     cliper.setInputCloud(in);
+    //获取需要提取的点的索引集合
     pcl::PointIndices indices;
 #pragma omp for
     for (size_t i = 0; i < in->points.size(); i++)
@@ -71,15 +79,18 @@ void EuClusterCore::clip_filter(const pcl::PointCloud<pcl::PointXYZ>::Ptr in,con
              indices.indices.push_back(i);*/
              
     }
+    //被提取的点的索引集合
     cliper.setIndices(boost::make_shared<pcl::PointIndices>(indices));
+    //true：表示去除这些点云
     cliper.setNegative(true); //ture to remove the indices
+    //获取滤波结果
     cliper.filter(*out);
 }
-
 
 void EuClusterCore::publish_cloud(const ros::Publisher &in_publisher,const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_to_publish_ptr,const std_msgs::Header &in_header)
 {
     sensor_msgs::PointCloud2 cloud_msg;
+    //换成ROS下的点云类型
     pcl::toROSMsg(*in_cloud_to_publish_ptr, cloud_msg);
     cloud_msg.header = in_header;
     in_publisher.publish(cloud_msg);
@@ -88,9 +99,13 @@ void EuClusterCore::publish_cloud(const ros::Publisher &in_publisher,const pcl::
 
 void EuClusterCore::voxel_grid_filer(pcl::PointCloud<pcl::PointXYZ>::Ptr in, pcl::PointCloud<pcl::PointXYZ>::Ptr out, double leaf_size)
 {
+    //创建滤波器
     pcl::VoxelGrid<pcl::PointXYZ> filter;
+    //设置输入的点云
     filter.setInputCloud(in);
+    //用leaf_size x leaf_size x leaf_size的立方体对点云进行稀疏化
     filter.setLeafSize(leaf_size, leaf_size, leaf_size);
+    //获取结果
     filter.filter(*out);
 }
 
@@ -143,7 +158,7 @@ jsk_recognition_msgs::BoundingBox EuClusterCore::getBbox(const pcl::PointCloud<p
     double y = bbox.pose.position.y * bbox.pose.position.y;
     double z = bbox.pose.position.z * bbox.pose.position.z;
     distance = sqrt(x+y+z);
-	dis_list.push_back(distance);
+	  dis_list.push_back(distance);
     bbox.header = point_cloud_header_;
     bbox_array_.boxes.push_back(bbox);
     return bbox;
@@ -183,8 +198,6 @@ void EuClusterCore::setcluster(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_orig
             bbox.pose.position.y = box.center.y;
             bbox.dimensions.x = box.size.width;
             bbox.dimensions.y = box.size.height;
-            
-            
 
             // set bounding box direction
             tf::Quaternion quat = tf::createQuaternionFromRPY(0.0, 0.0, box.angle * M_PI / 180);
@@ -234,9 +247,10 @@ void EuClusterCore::setcluster(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_orig
 //分割后聚类
 void EuClusterCore::cluster_segment(pcl::PointCloud<pcl::PointXYZ>::Ptr in_pc, double in_max_cluster_distance)
 {
+    //是一种分割k维数据空间的数据结构。主要应用于多维空间关键数据的搜索
     pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
 
-    //create 2d pc
+    //create 2d pc，将点云的z坐标值变为0
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_2d(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::copyPointCloud(*in_pc, *cloud_2d);
     //make it flat
@@ -246,8 +260,9 @@ void EuClusterCore::cluster_segment(pcl::PointCloud<pcl::PointXYZ>::Ptr in_pc, d
     }
 
     if (cloud_2d->points.size() > 0)
+        //设置要搜索的点云，建立KDTree
         tree->setInputCloud(cloud_2d);
-
+    //存储查询近邻点索引
     std::vector<pcl::PointIndices> clusters;
 
     pcl::EuclideanClusterExtraction<pcl::PointXYZ> euclid;
@@ -326,20 +341,24 @@ void EuClusterCore::cluster_by_distance2(pcl::PointCloud<pcl::PointXYZ>::Ptr in_
         float radius = pow(current_point.x, 2) + pow(current_point.y, 2);
 
         float range = 0.0;
+        //刚开始大于0且小于16
         for(int j = 0; j < regions_.size(); j++) 
         {
             if(radius > range * range && radius <= (range+regions_[j]) * (range+regions_[j])) 
             {
+                //处于这个范围内便将这些点存储进这个对应的区域
                 segment_pc_array[j]->push_back(current_point);
                 break;
             }
-            range += regions_[j];
+            //范围扩大到下一个区域
+            range += regions_[+j];
         }
     }
 
     for (size_t i = 0; i < segment_pc_array.size(); i++)
     {
         float cluster_distance = (i+1)*0.1;
+        //点云开始分割
         cluster_segment(segment_pc_array[i], cluster_distance);//点云、聚类半径
     }
        
@@ -353,47 +372,41 @@ void EuClusterCore::point_cb(const sensor_msgs::PointCloud2ConstPtr &in_cloud_pt
 	polygon_array_.polygons.clear();
 
 	point_cloud_header_ = in_cloud_ptr->header;
-	
-    pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>); //降采样
+  pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>); //降采样
+  pcl::fromROSMsg(*in_cloud_ptr, *filtered_pc_ptr);
+  
+  //阈值滤波
+  if(use_threshold_filter_)
+    clip_filter(filtered_pc_ptr, filtered_pc_ptr);
+  
+  //降采样
+  if(use_downsample_)
+      // down sampling the point cloud before cluster
+      voxel_grid_filer(filtered_pc_ptr, filtered_pc_ptr, LEAF_SIZE);
+   
+  //根据是否有节点订阅所需话题，决定是否发布对应话题
+  if(pub_filtered_points_.getNumSubscribers())
+    publish_cloud(pub_filtered_points_,filtered_pc_ptr,point_cloud_header_);
 
-    pcl::fromROSMsg(*in_cloud_ptr, *filtered_pc_ptr);
-    
-    //阈值滤波
-    if(use_threshold_filter_)
-	    clip_filter(filtered_pc_ptr, filtered_pc_ptr);
-    
-    //降采样
-    if(use_downsample_)
-        // down sampling the point cloud before cluster
-        voxel_grid_filer(filtered_pc_ptr, filtered_pc_ptr, LEAF_SIZE);
+  cluster_by_distance2(filtered_pc_ptr); //按照距离聚类
 
-    if(pub_filtered_points_.getNumSubscribers())
-	    publish_cloud(pub_filtered_points_,filtered_pc_ptr,point_cloud_header_);
+  if(marker_array_.markers.size())
+      pub_object_marker_.publish(marker_array_);
 
-    cluster_by_distance2(filtered_pc_ptr); //按照距离聚类
-
-    if(marker_array_.markers.size())
-        pub_object_marker_.publish(marker_array_);
-
-    if(polygon_array_.polygons.size())
-    {
-        polygon_array_.header = point_cloud_header_;
-        pub_polygon_.publish(polygon_array_);
-    }
-
-    
-
-    if(bbox_array_.boxes.size())
-    {
-        bbox_array_.header = point_cloud_header_;
-        pub_bounding_boxs_.publish(bbox_array_);
-        //if(is_min_dection_long)
-        {
-		    min_dis_object_.data =  *min_element(dis_list.begin(), dis_list.end());
-		    dis_list.clear();
-        }
-    }
-    else
-        min_dis_object_.data = 2000.0;
-    pub_min_dis_obj_.publish(min_dis_object_);
+  if(polygon_array_.polygons.size())
+  {
+      polygon_array_.header = point_cloud_header_;
+      pub_polygon_.publish(polygon_array_);
+  }
+  
+  if(bbox_array_.boxes.size())
+  {
+      bbox_array_.header = point_cloud_header_;
+      pub_bounding_boxs_.publish(bbox_array_);
+	    min_dis_object_.data =  *min_element(dis_list.begin(), dis_list.end());
+	    dis_list.clear();
+  }
+  else
+      min_dis_object_.data = 2000.0;
+  pub_min_dis_obj_.publish(min_dis_object_);
 }

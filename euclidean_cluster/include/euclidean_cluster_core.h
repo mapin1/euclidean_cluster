@@ -1,5 +1,5 @@
 #pragma once
-
+//为了避免同一个头文件被包含（include）多次，C/C++中有两种宏实现方式：一种是#ifndef方式；另一种是#pragma once方式。
 #include <ros/ros.h>
 #include "std_msgs/Float32.h"
 #include <iostream>
@@ -45,22 +45,23 @@ class EuClusterCore
 
 	private:
 		//全局障碍物array 单个box作为局部变量
+		//BoundingBox三维边界框
 		jsk_recognition_msgs::BoundingBoxArray bbox_array_;
-
+    
+    //显示轨迹
 		visualization_msgs::MarkerArray marker_array_;
 		visualization_msgs::Marker marker_;
 		
+		//显示二维边界框
 		euclidean_cluster::ObjectPolygonArray polygon_array_;
 		euclidean_cluster::ObjectPolygon polygon_;
 
 		std::string obj_pub_;
 		double y_max_,y_min_,x_min_,x_max_,z_min_,z_max_;
 		
-		
-		
 /*--------------------------------------------------------------*/
-        double min_dection_long;
-        double distance;
+    double min_dection_long;
+    double distance;
 		bool is_min_dection_long;
 		std_msgs::Float32 min_dis_object_;
 		std_msgs::Float32 offset;
@@ -70,8 +71,6 @@ class EuClusterCore
 		
 		std::vector<double> dis_list;
 /*--------------------------------------------------------------*/
-
-
 
 		bool pose_estimation_;
 		bool use_threshold_filter_;
