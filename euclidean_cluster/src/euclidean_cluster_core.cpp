@@ -62,6 +62,7 @@ void EuClusterCore::clip_filter(const pcl::PointCloud<pcl::PointXYZ>::Ptr in,con
     cliper.setInputCloud(in);
     //获取需要提取的点的索引集合
     pcl::PointIndices indices;
+    //其中，#pragma omp for语法OpenMP的并行化语法，即希望通过OpenMP并行化执行这条语句后的for循环，从而起到加速的效果。
 #pragma omp for
     for (size_t i = 0; i < in->points.size(); i++)
     {
