@@ -35,13 +35,13 @@ private:
   {
     pcl::PointXYZI point;
 
-    float radius; //cylindric coords on XY Plane
-    float theta;  //angle deg on XY plane
+    float radius; //cylindric coords on XY Plane 点到雷达的水平距离
+    float theta;  //angle deg on XY plane 点相对于车头正方向(即x方向)的夹角
 
-    size_t radial_div;     //index of the radial divsion to which this point belongs to
-    size_t concentric_div; //index of the concentric division to which this points belongs to
+    size_t radial_div;     //index of the radial divsion to which this point belongs to  角度微分
+    size_t concentric_div; //index of the concentric division to which this points belongs to  距离微分
 
-    size_t original_index; //index of this point in the source pointcloud
+    size_t original_index; //index of this point in the source pointcloud  这个点在原始点云中的索引
   };
   typedef std::vector<PointXYZIRTColor> PointCloudXYZIRTColor;
 

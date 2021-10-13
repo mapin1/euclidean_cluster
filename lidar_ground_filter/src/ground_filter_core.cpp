@@ -85,7 +85,7 @@ void PclTestCore::clip_filter(const pcl::PointCloud<pcl::PointXYZI>::Ptr in,cons
     pcl::ExtractIndices<pcl::PointXYZI> cliper;
     cliper.setInputCloud(in);
     pcl::PointIndices indices;
-    indices.indices.reserve(in->points.size()/2);
+    indices.indices.reserve(in->points.size()/2);//预留这么大
 #pragma omp for
     for (size_t i = 0; i < in->points.size(); i++)
     {
@@ -100,7 +100,7 @@ void PclTestCore::clip_filter(const pcl::PointCloud<pcl::PointXYZI>::Ptr in,cons
                 in->points[i].y>-1.5 && in->points[i].y<1.5 )
              indices.indices.push_back(i);   
     }
-    cliper.setIndices(boost::make_shared<pcl::PointIndices>(indices));
+    cliper.setIndices(boost::make_shared<pcl::PointIndices>(indices));//设置需要提取点云的索引
     cliper.setNegative(true); //ture to remove the indices
     cliper.filter(*out);
 }
@@ -298,17 +298,17 @@ void PclTestCore::publish_cloud(const ros::Publisher &in_publisher,
 
 void PclTestCore::point_cb(const sensor_msgs::PointCloud2ConstPtr &in_cloud_ptr)
 {
-    pcl::PointCloud<pcl::PointXYZI>::Ptr raw_pc_ptr(new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::PointCloud<pcl::PointXYZI>::Ptr filtered_pc_ptr(new pcl::PointCloud<pcl::PointXYZI>);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr raw_pc_ptr(new pcl::PointCloud<pcl::PointXYZI>);//原始点云数据
+    pcl::PointCloud<pcl::PointXYZI>::Ptr filtered_pc_ptr(new pcl::PointCloud<pcl::PointXYZI>);//滤波点云数据
 
-    pcl::fromROSMsg(*in_cloud_ptr, *raw_pc_ptr);
+    pcl::fromROSMsg(*in_cloud_ptr, *raw_pc_ptr);//转换为PCL点云
 
     if(use_threshold_filter_)
         clip_filter(raw_pc_ptr, filtered_pc_ptr);
     else
         filtered_pc_ptr = raw_pc_ptr;
 
-    std::vector<pcl::PointIndices> radial_division_indices;
+    std::vector<pcl::PointIndices> radial_division_indices;//径向分割
     std::vector<PointCloudXYZIRTColor> radial_ordered_clouds;
 
     //将点云按水平旋转角分组，并每一组点云按距离排序
