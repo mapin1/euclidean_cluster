@@ -15,3 +15,6 @@
 	'''
 	roslaunch lidar_detect euclidean_cluster.launch 
 	'''
+
+
+
