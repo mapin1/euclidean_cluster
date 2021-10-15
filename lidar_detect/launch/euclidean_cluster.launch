@@ -4,7 +4,9 @@
 
 	<node name="ground_filter_node" pkg="ground_filter" type="ground_filter_node" output="screen">
 		<param name="raw_points" value="/pandar_points"/>
-
+<!--		需要标定的传感器参数-->
+<!--        1.传感器安装高度-->
+<!--        2.过近过远过高点云-->
 		<param name="sensor_height" value="1.8"/>
 		<param name="use_threshold_filter" value="true"/>
 		<param name="clip_x_min" value="0.0"/>

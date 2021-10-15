@@ -3,7 +3,7 @@
 <launch>
 	<node name="euclidean_cluster" pkg="euclidean_cluster" type="euclidean_cluster_node" output="screen">
                                    
-		<param name="in_points"  type="string"  value="/livox/lidar"/> 
+		<param name="in_points"  type="string"  value="/pandar_points"/> 
 		<param name="obj_pub"  type="string"  value="/detected_bounding_boxs"/> 
 		<param name="min_dis_obj"  type="string"  value="/min_dis_obj"/>
 		<param name="obj_offset"  type= "string"  value="/obj_offset"/>
