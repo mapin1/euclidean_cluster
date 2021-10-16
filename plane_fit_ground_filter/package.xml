@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package>
-  <name>ground_filter</name>
+  <name>plane_ground_filter</name>
   <version>0.0.1</version>
-  <description>The ground_filter package</description>
+  <description>The plane_ground_filter package</description>
 
 
-  <maintainer email="shenzb12@lzu.edu.cn">adam</maintainer>
+  <maintainer email="shenzb12@lzu.edu.cn">adamshan</maintainer>
 
   <license>MIT</license>
 

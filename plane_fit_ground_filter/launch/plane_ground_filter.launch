@@ -1,7 +1,6 @@
 <!-- -->
 <launch>
-
-    <arg name="input_topic" default="/pandar_points" />
+    <arg name="input_topic" default="/velodyne_points" />
     <arg name="no_ground_point_topic" default="/points_no_ground"/>
     <arg name="ground_point_topic" default="/points_ground"/>
     <arg name="all_points_topic" default="/all_points"/>
@@ -25,6 +24,7 @@
     <!-- Distance Threshold -->
     <arg name="th_dist" default="0.3"/>
 
+
     <node pkg="plane_ground_filter" type="plane_ground_filter_node" name="plane_ground_filter_node" output="screen">
         <param name="input_topic" value="$(arg input_topic)"/>
         <param name="no_ground_point_topic" value="$(arg no_ground_point_topic)"/>
@@ -41,22 +41,4 @@
         <param name="th_seeds" value="$(arg th_seeds)" />
         <param name="th_dist" value="$(arg th_dist)" />
     </node>
-	
-	<node name="euclidean_cluster" pkg="euclidean_cluster" type="euclidean_cluster_node" output="screen">
-		<param name="in_points"  type="string"  value="/points_no_ground"/> 
-		<param name="obj_pub"  type="string"  value="/detected_bounding_boxs"/> 
-		
-		<param name="use_threshold_filter"  type="bool"  value="false"/>  
-
-		<param name="min_cluster_size"  type="int"  value="20"/>
-		<param name="max_cluster_size"  type="int"  value="50000"/>
-		
-		<param name="pose_estimation"  type="bool"  value="true"/>
-		<param name="use_downsample"  type="bool"  value="true"/>   
-		
-
-	</node>
-
 </launch>
-
-
