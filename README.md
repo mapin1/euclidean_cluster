@@ -21,4 +21,7 @@
 
 ##### 全部点云信息
 
-![这个括号里写的在图片加载失败时显示](图片网址)
+
+![全部点云](https://github.com/zshiningstar/euclidean_cluster/blob/ground_plane_fitting/plane_fit_ground_filter/test/img/ground_points.png)
+![地面点云](https://github.com/zshiningstar/euclidean_cluster/blob/ground_plane_fitting/plane_fit_ground_filter/test/img/all_points.png)
+![地上点云](https://github.com/zshiningstar/euclidean_cluster/blob/ground_plane_fitting/plane_fit_ground_filter/test/img/no_ground_points.png)
