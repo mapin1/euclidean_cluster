@@ -1,9 +1,5 @@
 #include "plane_ground_filter_core.h"
 
-/*
-    @brief Compare function to sort points. Here use z axis.
-    @return z-axis accent
-*/
 bool point_cmp(VPoint a, VPoint b)
 {
     return a.z < b.z;
@@ -12,12 +8,11 @@ bool point_cmp(VPoint a, VPoint b)
 PlaneGroundFilter::PlaneGroundFilter(ros::NodeHandle &nh)
 {
     std::string input_topic;
-    nh.getParam("input_topic", input_topic);
-    sub_point_cloud_ = nh.subscribe("/velodyne_points", 10, &PlaneGroundFilter::point_cb, this);
-
-    // init publisher
     std::string no_ground_topic, ground_topic, all_points_topic;
 
+	nh.getParam("input_topic", input_topic);
+    sub_point_cloud_ = nh.subscribe(input_topic, 10, &PlaneGroundFilter::point_cb, this);
+	
     nh.getParam("no_ground_point_topic", no_ground_topic);
     nh.getParam("ground_point_topic", ground_topic);
     nh.getParam("all_points_topic", all_points_topic);
@@ -60,6 +55,7 @@ void PlaneGroundFilter::Spin()
 {
 }
 
+//移除过高点云
 void PlaneGroundFilter::clip_above(const pcl::PointCloud<VPoint>::Ptr in,
                                    const pcl::PointCloud<VPoint>::Ptr out)
 {
@@ -80,6 +76,7 @@ void PlaneGroundFilter::clip_above(const pcl::PointCloud<VPoint>::Ptr in,
     cliper.filter(*out);
 }
 
+//移除范围之外的点云
 void PlaneGroundFilter::remove_close_far_pt(const pcl::PointCloud<VPoint>::Ptr in,
                                             const pcl::PointCloud<VPoint>::Ptr out)
 {
@@ -132,8 +129,6 @@ void PlaneGroundFilter::estimate_plane_(void)
     d_ = -(normal_.transpose() * seeds_mean)(0, 0);
     // set distance threhold to `th_dist - d`
     th_dist_d_ = th_dist_ - d_;
-
-    // return the equation parameters
 }
 
 /*
@@ -167,7 +162,6 @@ void PlaneGroundFilter::extract_initial_seeds_(const pcl::PointCloud<VPoint> &p_
             g_seeds_pc->points.push_back(p_sorted.points[i]);
         }
     }
-    // return seeds points
 }
 
 void PlaneGroundFilter::post_process(const pcl::PointCloud<VPoint>::Ptr in, const pcl::PointCloud<VPoint>::Ptr out)
@@ -186,9 +180,9 @@ void PlaneGroundFilter::point_cb(const sensor_msgs::PointCloud2ConstPtr &in_clou
 
     pcl::PointCloud<VPoint> laserCloudIn_org;
     pcl::fromROSMsg(*in_cloud_ptr, laserCloudIn_org);
-    // For mark ground points and hold all points
+    //声明带有标记的点
     SLRPointXYZIRL point;
-
+	//将所有点事先存储进g_all_pc
     for (size_t i = 0; i < laserCloudIn.points.size(); i++)
     {
         point.x = laserCloudIn.points[i].x;
@@ -199,13 +193,10 @@ void PlaneGroundFilter::point_cb(const sensor_msgs::PointCloud2ConstPtr &in_clou
         point.label = 0u; // 0 means uncluster
         g_all_pc->points.push_back(point);
     }
-    //std::vector<int> indices;
-    //pcl::removeNaNFromPointCloud(laserCloudIn, laserCloudIn,indices);
     // 2.Sort on Z-axis value.
-    sort(laserCloudIn.points.begin(), laserCloudIn.end(), point_cmp);
+    sort(laserCloudIn.points.begin(), laserCloudIn.points.end(), point_cmp);
     // 3.Error point removal
-    // As there are some error mirror reflection under the ground,
-    // here regardless point under 2* sensor_height
+    // 因为在地下有一些错误的反射,忽略传感器1.5倍高度以下的点
     // Sort point according to height, here uses z-axis in default
     pcl::PointCloud<VPoint>::iterator it = laserCloudIn.points.begin();
     for (int i = 0; i < laserCloudIn.points.size(); i++)
@@ -219,6 +210,7 @@ void PlaneGroundFilter::point_cb(const sensor_msgs::PointCloud2ConstPtr &in_clou
             break;
         }
     }
+	//删除高度过低的点（此处如一些地面倒影等）
     laserCloudIn.points.erase(laserCloudIn.points.begin(), it);
     // 4. Extract init ground seeds.
     extract_initial_seeds_(laserCloudIn);

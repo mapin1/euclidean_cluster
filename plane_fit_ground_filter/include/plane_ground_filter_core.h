@@ -2,7 +2,7 @@
 
 #include <ros/ros.h>
 
-// For disable PCL complile lib, to use PointXYZIR
+//自己定义的点云类型能够使用PCL里的模板算法
 #define PCL_NO_PRECOMPILE
 
 #include <pcl_conversions/pcl_conversions.h>
@@ -14,9 +14,7 @@
 #include <pcl/common/centroid.h>
 #include <pcl/filters/extract_indices.h>
 
-// using eigen lib
 #include <Eigen/Dense>
-
 #include <sensor_msgs/PointCloud2.h>
 
 namespace velodyne_pointcloud
@@ -45,7 +43,7 @@ struct PointXYZIRL
   float intensity;                ///< laser intensity reading
   uint16_t ring;                  ///< laser ring number
   uint16_t label;                 ///< point label
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW // ensure proper alignment
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW // 确保定义新类型点云内存与SSE对齐
 } EIGEN_ALIGN16;
 
 }; // namespace plane_ground_filter

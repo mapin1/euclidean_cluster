@@ -1,7 +1,3 @@
-//
-// Created by adam on 18-9-21.
-//
-
 #include "plane_ground_filter_core.h"
 
 int main(int argc, char **argv)
