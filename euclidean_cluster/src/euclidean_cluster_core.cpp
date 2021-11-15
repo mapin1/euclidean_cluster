@@ -6,7 +6,7 @@ EuClusterCore::EuClusterCore(ros::NodeHandle &nh, ros::NodeHandle &private_nh)
     cluster_distance_ = {0.4, 0.8, 1.4, 1.8}; //各区间的聚类半径
     private_nh.param<std::string>("obj_pub",obj_pub_,"/detection/lidar_objects");
     //订阅的点云
-    std::string raw_points_topic = private_nh.param<std::string>("in_points","/pandar_points");	
+    std::string raw_points_topic = private_nh.param<std::string>("in_points","/fusion_topic_");	
     sub_point_cloud_     = nh.subscribe(raw_points_topic, 1, &EuClusterCore::point_cb, this);//point_cb
     
     //发布滤波后的点云
@@ -19,6 +19,7 @@ EuClusterCore::EuClusterCore(ros::NodeHandle &nh, ros::NodeHandle &private_nh)
     pub_offset_          = nh.advertise<std_msgs::Float32>(private_nh.param<std::string>("obj_offset","/obj_offset"),1);
 	
     private_nh.param<double>("x_max",x_max_,1.0);
+    std::cout << "x_max_: " << x_max_ << std::endl;
     private_nh.param<double>("x_min",x_min_,1.0);
     private_nh.param<double>("y_max",y_max_,1.0);
     private_nh.param<double>("y_min",y_min_,1.0);
@@ -386,7 +387,7 @@ void EuClusterCore::point_cb(const sensor_msgs::PointCloud2ConstPtr &in_cloud_pt
       voxel_grid_filer(filtered_pc_ptr, filtered_pc_ptr, LEAF_SIZE);
    
   //根据是否有节点订阅所需话题，决定是否发布对应话题
-  if(pub_filtered_points_.getNumSubscribers())
+//  if(pub_filtered_points_.getNumSubscribers())
     publish_cloud(pub_filtered_points_,filtered_pc_ptr,point_cloud_header_);
 
   cluster_by_distance2(filtered_pc_ptr); //按照距离聚类

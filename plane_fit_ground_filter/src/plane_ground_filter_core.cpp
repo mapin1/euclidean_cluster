@@ -189,7 +189,7 @@ void PlaneGroundFilter::point_cb(const sensor_msgs::PointCloud2ConstPtr &in_clou
         point.y = laserCloudIn.points[i].y;
         point.z = laserCloudIn.points[i].z;
         point.intensity = laserCloudIn.points[i].intensity;
-        point.ring = laserCloudIn.points[i].ring;
+//        point.ring = laserCloudIn.points[i].ring;
         point.label = 0u; // 0 means uncluster
         g_all_pc->points.push_back(point);
     }

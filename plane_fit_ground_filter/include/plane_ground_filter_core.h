@@ -24,14 +24,14 @@ struct PointXYZIR
 {
   PCL_ADD_POINT4D;                // quad-word XYZ
   float intensity;                ///< laser intensity reading
-  uint16_t ring;                  ///< laser ring number
+//  uint16_t ring;                  ///< laser ring number
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW // ensure proper alignment
 } EIGEN_ALIGN16;
 
 }; // namespace velodyne_pointcloud
 
 POINT_CLOUD_REGISTER_POINT_STRUCT(velodyne_pointcloud::PointXYZIR,
-                                  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(uint16_t, ring, ring))
+                                  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity))
 
 //Customed Point Struct for holding clustered points
 namespace plane_ground_filter
@@ -41,7 +41,7 @@ struct PointXYZIRL
 {
   PCL_ADD_POINT4D;                // quad-word XYZ
   float intensity;                ///< laser intensity reading
-  uint16_t ring;                  ///< laser ring number
+//  uint16_t ring;                  ///< laser ring number
   uint16_t label;                 ///< point label
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW // 确保定义新类型点云内存与SSE对齐
 } EIGEN_ALIGN16;
@@ -54,7 +54,7 @@ struct PointXYZIRL
 
 // Register custom point struct according to PCL
 POINT_CLOUD_REGISTER_POINT_STRUCT(plane_ground_filter::PointXYZIRL,
-                                  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(uint16_t, ring, ring)(uint16_t, label, label))
+                                  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(uint16_t, label, label))
 
 using Eigen::JacobiSVD;
 using Eigen::MatrixXf;
