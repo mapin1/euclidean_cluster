@@ -3,18 +3,18 @@
 <launch>
 	<node name="euclidean_cluster" pkg="euclidean_cluster" type="euclidean_cluster_node" output="screen">
                                    
-		<param name="in_points"  type="string"  value="/pandar_points"/> 
+		<param name="in_points"  type="string"  value="/fusion_topic"/> 
 		<param name="obj_pub"  type="string"  value="/detected_bounding_boxs"/> 
 		<param name="min_dis_obj"  type="string"  value="/min_dis_obj"/>
 		<param name="obj_offset"  type= "string"  value="/obj_offset"/>
 		
 		<!-- 使用阈值滤波 -->
 		<param name="use_threshold_filter"  type="bool"  value="true"/>  
-		<param name="y_max"  type="double"  value="8"/>
-		<param name="y_min"  type="double"  value="-8"/>
-		<param name="x_max"  type="double"  value="20.0"/>
+		<param name="y_max"  type="double"  value="10"/>
+		<param name="y_min"  type="double"  value="-10"/>
+		<param name="x_max"  type="double"  value="30.0"/>
 		<param name="x_min"  type="double"  value="0"/>
-		<param name="z_max"  type="double"  value="2.3"/>
+		<param name="z_max"  type="double"  value="4.3"/>
 		<param name="z_min"  type="double"  value="-0.1"/>
 
 		<param name="min_cluster_size"  type="int"  value="10"/>

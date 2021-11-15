@@ -13,7 +13,7 @@ PclTestCore::PclTestCore(ros::NodeHandle &nh)
     nh_private.param<float>("clip_y_min",y_min_, -15.0);
     nh_private.param<float>("clip_y_max",y_max_, 15.0);
     nh_private.param<float>("clip_z_min",z_min_, -2.0);
-    nh_private.param<float>("clip_z_max",z_max_, 0.2);
+    nh_private.param<float>("clip_z_max",z_max_, 2.0);
 
     nh_private.param<float>("min_height_threshold",min_height_threshold_, 0.05);
     nh_private.param<float>("local_max_slope",local_max_slope_, 5.0);
